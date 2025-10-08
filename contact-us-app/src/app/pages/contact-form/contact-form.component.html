@@ -1,0 +1,27 @@
+<form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+  <div>
+    <label for="name">Name</label>
+    <input id="name" formControlName="name" type="text" />
+    <div *ngIf="submitted && contactForm.controls['name'].invalid" class="error">
+      Name is required.
+    </div>
+  </div>
+  <div>
+    <label for="email">Email</label>
+    <input id="email" formControlName="email" type="email" />
+    <div *ngIf="submitted && contactForm.controls['email'].invalid" class="error">
+      Valid email is required.
+    </div>
+  </div>
+  <div>
+    <label for="msg">Message</label>
+    <textarea id="msg" formControlName="msg"></textarea>
+    <div *ngIf="submitted && contactForm.controls['msg'].invalid" class="error">
+      Message is required.
+    </div>
+  </div>
+  <button type="submit">Send</button>
+  <div *ngIf="successMessage" class="success">
+    {{ successMessage }}
+  </div>
+</form>
