@@ -1,27 +1,89 @@
-<form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
-  <div>
-    <label for="name">Name</label>
-    <input id="name" formControlName="name" type="text" />
-    <div *ngIf="submitted && contactForm.controls['name'].invalid" class="error">
-      Name is required.
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>New Contact</h2>
+        <div>
+          <button class="btn btn-outline-secondary me-2" type="button" routerLink="/contacts">
+            <i class="bi bi-arrow-left"></i> Back to List
+          </button>
+          <button class="btn btn-outline-danger" type="button" (click)="onLogout()">
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- Contact Form Card -->
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+            <!-- Name Field -->
+            <div class="mb-3">
+              <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+              <input 
+                id="name" 
+                formControlName="name" 
+                type="text" 
+                class="form-control"
+                [class.is-invalid]="submitted && contactForm.controls['name'].invalid"
+                placeholder="Enter your name" />
+              <div *ngIf="submitted && contactForm.controls['name'].invalid" class="invalid-feedback">
+                Name is required.
+              </div>
+            </div>
+
+            <!-- Email Field -->
+            <div class="mb-3">
+              <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+              <input 
+                id="email" 
+                formControlName="email" 
+                type="email" 
+                class="form-control"
+                [class.is-invalid]="submitted && contactForm.controls['email'].invalid"
+                placeholder="Enter your email" />
+              <div *ngIf="submitted && contactForm.controls['email'].invalid" class="invalid-feedback">
+                <span *ngIf="contactForm.controls['email'].errors?.['required']">Email is required.</span>
+                <span *ngIf="contactForm.controls['email'].errors?.['email']">Please enter a valid email.</span>
+              </div>
+            </div>
+
+            <!-- Message Field -->
+            <div class="mb-3">
+              <label for="msg" class="form-label">Message <span class="text-danger">*</span></label>
+              <textarea 
+                id="msg" 
+                formControlName="msg" 
+                class="form-control"
+                [class.is-invalid]="submitted && contactForm.controls['msg'].invalid"
+                rows="5"
+                placeholder="Enter your message"></textarea>
+              <div *ngIf="submitted && contactForm.controls['msg'].invalid" class="invalid-feedback">
+                Message is required.
+              </div>
+            </div>
+
+            <!-- Success Message -->
+            <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+              <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}
+              <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary btn-lg" [disabled]="submitted && contactForm.invalid">
+                <i class="bi bi-send-fill me-2"></i>Send Message
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Help Text -->
+      <div class="text-center mt-3 text-muted">
+        <small>All fields marked with <span class="text-danger">*</span> are required</small>
+      </div>
     </div>
   </div>
-  <div>
-    <label for="email">Email</label>
-    <input id="email" formControlName="email" type="email" />
-    <div *ngIf="submitted && contactForm.controls['email'].invalid" class="error">
-      Valid email is required.
-    </div>
-  </div>
-  <div>
-    <label for="msg">Message</label>
-    <textarea id="msg" formControlName="msg"></textarea>
-    <div *ngIf="submitted && contactForm.controls['msg'].invalid" class="error">
-      Message is required.
-    </div>
-  </div>
-  <button type="submit">Send</button>
-  <div *ngIf="successMessage" class="success">
-    {{ successMessage }}
-  </div>
-</form>
+</div>

@@ -11,14 +11,14 @@ export class ContactsService {
   constructor(private http: HttpClient) {}
 
   getContacts(): Observable<Contact[]> {
-    return this.http.get<Contact[]>(this.apiUrl);
+    return this.http.get<Contact[]>(this.apiUrl, { withCredentials: true });
   }
 
   getContact(id: number): Observable<Contact> {
-    return this.http.get<Contact>(`${this.apiUrl}/${id}`);
+    return this.http.get<Contact>(`${this.apiUrl}/${id}`, { withCredentials: true });
   }
 
   createContact(contact: CreateContactDto): Observable<Contact> {
-    return this.http.post<Contact>(this.apiUrl, contact);
+    return this.http.post<Contact>(this.apiUrl, contact, { withCredentials: true });
   }
 }

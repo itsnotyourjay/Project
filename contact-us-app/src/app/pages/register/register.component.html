@@ -1,0 +1,47 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h3 class="card-title">Register</h3>
+
+          <form (ngSubmit)="submit()" [formGroup]="form">
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input class="form-control" type="email" formControlName="email" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input class="form-control" type="password" formControlName="password" />
+            </div>
+
+            <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+            <div *ngIf="registrationSuccess" class="alert alert-success">Registration successful for {{ registeredEmail }}</div>
+
+            <button *ngIf="!registrationSuccess" class="btn btn-primary" type="submit">Register</button>
+            <button *ngIf="registrationSuccess" class="btn btn-success" type="button" (click)="continueToContacts()">Continue to Contacts</button>
+            <button *ngIf="registrationSuccess" class="btn btn-link" type="button" (click)="goToLogin()">Login</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Confirm login modal -->
+<div class="modal fade" tabindex="-1" [class.show]="showConfirmLoginModal" [style.display]="showConfirmLoginModal ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Continue to Login?</h5>
+      </div>
+      <div class="modal-body">
+        <p>Would you like to login now?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showConfirmLoginModal = false">No</button>
+        <button class="btn btn-primary" (click)="goToLogin()">Yes</button>
+      </div>
+    </div>
+  </div>
+</div>

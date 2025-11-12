@@ -1,0 +1,27 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h3 class="card-title">Login</h3>
+
+          <form (ngSubmit)="submit()" [formGroup]="form">
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input class="form-control" type="email" formControlName="email" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input class="form-control" type="password" formControlName="password" />
+            </div>
+
+            <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+            <button class="btn btn-primary" type="submit">Login</button>
+            <a routerLink="/register" class="btn btn-link">Register</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
