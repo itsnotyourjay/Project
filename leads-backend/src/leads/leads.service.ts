@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lead } from './entities/lead.entity';
 import { CreateLeadDto } from './dto/create-lead.dto';
+import { UpdateLeadDto } from './dto/update-lead.dto';
 
 @Injectable()
 export class LeadsService {
@@ -40,5 +41,33 @@ export class LeadsService {
       });
     }
     return this.leadsRepository.findOne(id);
+  }
+
+  async update(id: number, updateLeadDto: UpdateLeadDto, userId?: number) {
+    // First, verify the lead exists and belongs to the user
+    const lead = await this.findOne(id, userId);
+    
+    if (!lead) {
+      throw new NotFoundException(`Lead with ID ${id} not found or access denied`);
+    }
+
+    // Update the lead with new data
+    Object.assign(lead, updateLeadDto);
+    await this.leadsRepository.save(lead);
+    
+    return { msg: 'Lead updated successfully', data: lead };
+  }
+
+  async remove(id: number, userId?: number) {
+    // First, verify the lead exists and belongs to the user
+    const lead = await this.findOne(id, userId);
+    
+    if (!lead) {
+      throw new NotFoundException(`Lead with ID ${id} not found or access denied`);
+    }
+
+    await this.leadsRepository.remove(lead);
+    
+    return { msg: 'Lead deleted successfully' };
   }
 }
