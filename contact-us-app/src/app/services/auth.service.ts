@@ -12,9 +12,10 @@ export class AuthService {
   register(payload: { email: string; password: string }): Observable<any> {
     // Server sets HttpOnly cookies (accessToken + refreshToken). No tokens stored in localStorage.
     return this.http.post(`${API}/auth/register`, payload, { withCredentials: true }).pipe(
-      tap(() => {
+      tap((result: any) => {
         this.authState.setAuthenticated(true);
         this.authState.setInitialized(true);
+        this.authState.setIsAdmin(result?.user?.isAdmin || false);
       })
     );
   }
@@ -22,9 +23,10 @@ export class AuthService {
   login(payload: { email: string; password: string }): Observable<any> {
     // Server sets HttpOnly cookies (accessToken + refreshToken). No tokens stored in localStorage.
     return this.http.post(`${API}/auth/login`, payload, { withCredentials: true }).pipe(
-      tap(() => {
+      tap((result: any) => {
         this.authState.setAuthenticated(true);
         this.authState.setInitialized(true);
+        this.authState.setIsAdmin(result?.user?.isAdmin || false);
       })
     );
   }
@@ -35,6 +37,7 @@ export class AuthService {
       tap(() => {
         // update local auth state
         this.authState.setAuthenticated(false);
+        this.authState.setIsAdmin(false);
       })
     );
   }
@@ -46,9 +49,10 @@ export class AuthService {
 
   me() {
     return this.http.post(`${API}/auth/me`, {}, { withCredentials: true }).pipe(
-      tap(() => {
+      tap((result: any) => {
         this.authState.setAuthenticated(true);
         this.authState.setInitialized(true);
+        this.authState.setIsAdmin(result?.user?.isAdmin || false);
       })
     );
   }

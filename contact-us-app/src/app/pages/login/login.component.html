@@ -5,6 +5,13 @@
         <div class="card-body">
           <h3 class="card-title">Login</h3>
 
+          <!-- Session Expired Alert -->
+          <div *ngIf="sessionExpiredMessage" class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-clock-history me-2"></i>
+            <strong>Session Expired:</strong> {{ sessionExpiredMessage }}
+            <button type="button" class="btn-close" (click)="sessionExpiredMessage = ''" aria-label="Close"></button>
+          </div>
+
           <form (ngSubmit)="submit()" [formGroup]="form">
             <div class="mb-3">
               <label class="form-label">Email</label>
@@ -20,6 +27,16 @@
             <button class="btn btn-primary" type="submit">Login</button>
             <a routerLink="/register" class="btn btn-link">Register</a>
           </form>
+          
+          <hr class="my-3">
+          
+          <div class="text-center">
+            <small class="text-muted">Administrator?</small>
+            <a routerLink="/admin/login" class="btn btn-sm btn-outline-secondary d-block mt-2">
+              <i class="bi bi-shield-lock me-1"></i>
+              Admin Login
+            </a>
+          </div>
         </div>
       </div>
     </div>

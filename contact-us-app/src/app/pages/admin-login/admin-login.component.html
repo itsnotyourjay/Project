@@ -1,0 +1,107 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <!-- Admin Login Card -->
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white text-center">
+          <h3 class="mb-0">
+            <i class="bi bi-shield-lock-fill me-2"></i>
+            Admin Login
+          </h3>
+        </div>
+        
+        <div class="card-body p-4">
+          <!-- Session Expired Message -->
+          <div *ngIf="sessionExpiredMessage" class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-clock-history me-2"></i>
+            <strong>Session Expired:</strong> {{ sessionExpiredMessage }}
+            <button type="button" class="btn-close" (click)="sessionExpiredMessage = ''" aria-label="Close"></button>
+          </div>
+
+          <!-- Error Message -->
+          <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {{ errorMessage }}
+            <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+          </div>
+
+          <!-- Login Form -->
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <!-- Email Field -->
+            <div class="mb-3">
+              <label for="email" class="form-label">
+                <i class="bi bi-envelope me-1"></i>
+                Email Address
+              </label>
+              <input 
+                type="email" 
+                id="email"
+                class="form-control" 
+                [class.is-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+                formControlName="email"
+                placeholder="Enter admin email">
+              <div class="invalid-feedback" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+                <span *ngIf="loginForm.get('email')?.errors?.['required']">Email is required</span>
+                <span *ngIf="loginForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+              </div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-3">
+              <label for="password" class="form-label">
+                <i class="bi bi-key me-1"></i>
+                Password
+              </label>
+              <input 
+                type="password" 
+                id="password"
+                class="form-control" 
+                [class.is-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+                formControlName="password"
+                placeholder="Enter password">
+              <div class="invalid-feedback" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                <span *ngIf="loginForm.get('password')?.errors?.['required']">Password is required</span>
+                <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid gap-2 mt-4">
+              <button 
+                type="submit" 
+                class="btn btn-primary btn-lg"
+                [disabled]="loading">
+                <span *ngIf="!loading">
+                  <i class="bi bi-box-arrow-in-right me-2"></i>
+                  Login as Admin
+                </span>
+                <span *ngIf="loading">
+                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  Logging in...
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-footer text-center text-muted">
+          <small>
+            <i class="bi bi-info-circle me-1"></i>
+            Admin access required
+          </small>
+          <br>
+          <a routerLink="/login" class="text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to User Login
+          </a>
+        </div>
+      </div>
+
+      <!-- Info Alert -->
+      <div class="alert alert-info mt-3" role="alert">
+        <i class="bi bi-shield-check me-2"></i>
+        <strong>Admin Portal:</strong> This area is restricted to administrators only.
+      </div>
+    </div>
+  </div>
+</div>

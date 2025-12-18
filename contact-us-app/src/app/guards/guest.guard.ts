@@ -16,8 +16,16 @@ export class GuestGuard implements CanActivate {
     const isAuth = this.authState.isAuthenticated();
     
     if (isAuth) {
-      // Already logged in - redirect to contacts
-      return of(this.router.createUrlTree(['/contacts']));
+      // Already logged in - redirect based on user type
+      const isAdmin = this.authState.getIsAdmin();
+      
+      if (isAdmin) {
+        // Admin user - redirect to admin dashboard
+        return of(this.router.createUrlTree(['/admin/dashboard']));
+      } else {
+        // Regular user - redirect to contacts
+        return of(this.router.createUrlTree(['/contacts']));
+      }
     }
     
     // Not authenticated - allow access to guest pages (login/register)

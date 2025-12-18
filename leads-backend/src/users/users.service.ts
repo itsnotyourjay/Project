@@ -28,6 +28,12 @@ export class UsersService {
     return this.repo.findOne({ where: { id } });
   }
 
+  async findAll(): Promise<User[]> {
+    return this.repo.find({
+      order: { registeredAt: 'DESC' }
+    });
+  }
+
   // Added method used by AuthService to record last login time and IP
   async updateLastLogin(userId: number, ipAddress?: string): Promise<void> {
     await this.repo.update(userId, {
@@ -38,4 +44,15 @@ export class UsersService {
 
   // Store hashed refresh token for a user (used for refresh token rotation)
   // Legacy single-token method removed — refresh tokens are stored in refresh_tokens table now.
+
+  // Admin: Update user details (e.g., toggle admin status)
+  async updateUser(userId: number, updates: Partial<User>): Promise<User> {
+    await this.repo.update(userId, updates);
+    return this.findById(userId);
+  }
+
+  // Admin: Delete user (hard delete - removes user and cascades to related data)
+  async deleteUser(userId: number): Promise<void> {
+    await this.repo.delete(userId);
+  }
 }

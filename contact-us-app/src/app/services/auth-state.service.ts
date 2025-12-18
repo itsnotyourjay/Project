@@ -10,6 +10,12 @@ export class AuthStateService {
   private _initialized = new BehaviorSubject<boolean>(false);
   public initialized$ = this._initialized.asObservable();
 
+  // Track admin status - initialize from sessionStorage if available
+  private _isAdmin = new BehaviorSubject<boolean>(
+    sessionStorage.getItem('isAdmin') === 'true'
+  );
+  public isAdmin$ = this._isAdmin.asObservable();
+
   setAuthenticated(value: boolean) {
     this._authenticated.next(value);
   }
@@ -24,5 +30,19 @@ export class AuthStateService {
 
   isInitialized() {
     return this._initialized.getValue();
+  }
+
+  setIsAdmin(value: boolean) {
+    this._isAdmin.next(value);
+    // Also store in sessionStorage for guard checks
+    if (value) {
+      sessionStorage.setItem('isAdmin', 'true');
+    } else {
+      sessionStorage.removeItem('isAdmin');
+    }
+  }
+
+  getIsAdmin() {
+    return this._isAdmin.getValue();
   }
 }

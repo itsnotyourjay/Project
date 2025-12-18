@@ -1,0 +1,48 @@
+.card {
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table thead {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light));
+  color: white;
+}
+
+.table thead th {
+  border: none;
+  font-weight: 600;
+  padding: 1rem;
+}
+
+.table tbody tr {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.table tbody tr:hover {
+  background: var(--primary-blue-lighter);
+  transform: scale(1.01);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.btn-group .btn {
+  flex: 1;
+}
+
+.input-group-text {
+  background: var(--primary-blue-lighter);
+  border: 2px solid var(--medium-gray);
+}
+
+.bi {
+  vertical-align: middle;
+}

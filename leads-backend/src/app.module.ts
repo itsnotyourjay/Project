@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { LeadsModule } from './leads/leads.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { AuthModule } from './auth/auth.module';
         host: config.get<string>('DB_HOST'),
         port: config.get<number>('DB_PORT'),
         username: config.get<string>('DB_USERNAME'),
-        password: config.get<string>('DB_PASSWORD'),
+        password: config.get<string>('DB_PASSWORD') || '',
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true,
@@ -32,6 +33,7 @@ import { AuthModule } from './auth/auth.module';
   LeadsModule,
   UsersModule,
   AuthModule,
+  AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

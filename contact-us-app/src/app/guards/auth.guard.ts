@@ -14,11 +14,21 @@ export class AuthGuard implements CanActivate {
     // APP_INITIALIZER has already run, so we can synchronously check the auth state
     const isAuth = this.authState.isAuthenticated();
     
-    if (isAuth) {
-      return of(true);
+    if (!isAuth) {
+      // Not authenticated - redirect to login
+      return of(this.router.createUrlTree(['/login']));
     }
     
-    // Not authenticated - redirect to login
-    return of(this.router.createUrlTree(['/login']));
+    // Check if user is admin
+    const isAdmin = this.authState.getIsAdmin();
+    
+    if (isAdmin) {
+      // Admin users should not access regular user routes
+      // Redirect them to admin dashboard
+      return of(this.router.createUrlTree(['/admin/dashboard']));
+    }
+    
+    // Regular user - allow access
+    return of(true);
   }
 }

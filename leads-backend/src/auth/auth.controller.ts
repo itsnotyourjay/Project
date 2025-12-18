@@ -62,6 +62,32 @@ export class AuthController {
     return { user: result.user };
   }
 
+  @Post('admin/login')
+  async adminLogin(@Body() dto: LoginUserDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const result: any = await this.auth.adminLogin(dto, ipAddress);
+    
+    if (result?.access_token) {
+      res.cookie('accessToken', result.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: parseInt(process.env.ACCESS_EXPIRES_MS || String(15 * 60 * 1000)),
+      });
+    }
+    
+    if (result?.refresh_token) {
+      res.cookie('refreshToken', result.refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: parseInt(process.env.REFRESH_EXPIRES_MS || String(7 * 24 * 60 * 60 * 1000)),
+      });
+    }
+
+    return { user: result.user };
+  }
+
   @Post('refresh')
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = (req as any).cookies?.refreshToken;

@@ -28,19 +28,27 @@ export const appConfig: ApplicationConfig = {
       
       // Return a Promise that blocks app initialization
       return new Promise<void>((resolve) => {
-        http.post('http://localhost:3000/api/auth/me', {}, { withCredentials: true })
+        http.post<any>('http://localhost:3000/api/auth/me', {}, { withCredentials: true })
           .pipe(
             timeout(5000),
             catchError(() => of(null))
           )
           .subscribe({
             next: (result) => {
-              authState.setAuthenticated(!!result);
-              authState.setInitialized(true);
+              if (result && result.user) {
+                authState.setAuthenticated(true);
+                authState.setIsAdmin(result.user.isAdmin || false); // ← Access user.isAdmin
+                authState.setInitialized(true);
+              } else {
+                authState.setAuthenticated(false);
+                authState.setIsAdmin(false);
+                authState.setInitialized(true);
+              }
               resolve();
             },
             error: () => {
               authState.setAuthenticated(false);
+              authState.setIsAdmin(false);
               authState.setInitialized(true);
               resolve();
             }

@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -11,14 +11,29 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   form: any;
   error = '';
+  sessionExpiredMessage = '';
 
-  constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {
+  constructor(
+    private fb: FormBuilder, 
+    private auth: AuthService, 
+    private router: Router,
+    private route: ActivatedRoute
+  ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
+    });
+  }
+
+  ngOnInit() {
+    // Check if user was redirected here due to session expiration
+    this.route.queryParams.subscribe(params => {
+      if (params['expired'] === 'true') {
+        this.sessionExpiredMessage = 'Your session has expired. Please log in again.';
+      }
     });
   }
 
