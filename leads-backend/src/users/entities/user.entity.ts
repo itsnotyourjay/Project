@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -31,6 +31,16 @@ export class User {
   // IP used for the most recent login (optional)
   @Column({ nullable: true })
   lastLoginIp: string;
+
+  // Soft delete columns
+  @DeleteDateColumn({ type: 'datetime', nullable: true })
+  deleted_at: Date;
+
+  @Column({ nullable: true })
+  deleted_by: number;
+
+  @Column({ type: 'text', nullable: true })
+  deletion_reason: string;
 
   // hashed refresh token for rotating refresh-token strategy (optional)
   // refresh tokens are now stored in a separate table (refresh_tokens)

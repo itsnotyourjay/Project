@@ -12,6 +12,11 @@ interface Lead {
   msg: string;
   userId: number;
   createdAt: string;
+  user?: {
+    id: number;
+    email: string;
+    deleted_at?: string | null;
+  };
 }
 
 interface User {
@@ -34,6 +39,13 @@ export class AdminLeadsComponent implements OnInit {
   error: string | null = null;
   searchTerm = '';
   selectedUserId: string = '';
+  
+  // Reassignment modal state
+  showReassignModal = false;
+  reassignLeadId: number | null = null;
+  reassignToUserId: number | null = null;
+  reassignLeadInfo: { name: string; email: string; currentUser: string } | null = null;
+  reassigning = false;
 
   constructor(
     private http: HttpClient,
@@ -116,6 +128,83 @@ export class AdminLeadsComponent implements OnInit {
   getUserEmail(userId: number): string {
     const user = this.users.find(u => u.id === userId);
     return user ? user.email : `User #${userId}`;
+  }
+
+  isOrphanedLead(lead: Lead): boolean {
+    return lead.user?.deleted_at != null;
+  }
+
+  openReassignModal(lead: Lead) {
+    this.reassignLeadId = lead.id;
+    this.reassignToUserId = null;
+    this.reassignLeadInfo = {
+      name: lead.name,
+      email: lead.email,
+      currentUser: this.getUserEmail(lead.userId)
+    };
+    this.showReassignModal = true;
+  }
+
+  closeReassignModal() {
+    this.showReassignModal = false;
+    this.reassignLeadId = null;
+    this.reassignToUserId = null;
+    this.reassignLeadInfo = null;
+  }
+
+  confirmReassign() {
+    if (!this.reassignLeadId || !this.reassignToUserId) {
+      alert('Please select a user to reassign this lead to.');
+      return;
+    }
+
+    this.reassigning = true;
+
+    this.http.post('http://localhost:3000/api/admin/leads/reassign-single', {
+      leadId: this.reassignLeadId,
+      toUserId: this.reassignToUserId
+    }, { withCredentials: true })
+      .subscribe({
+        next: (result: any) => {
+          alert(`Successfully reassigned lead to ${this.getUserEmail(this.reassignToUserId!)}`);
+          this.closeReassignModal();
+          this.loadLeads(); // Reload to reflect changes
+          this.reassigning = false;
+        },
+        error: (err) => {
+          console.error('Error reassigning lead:', err);
+          alert('Failed to reassign lead. Please try again.');
+          this.reassigning = false;
+        }
+      });
+  }
+
+  assignOrphanedLeads() {
+    // Find first admin user to assign orphaned leads to
+    const adminUser = this.users.find(u => u.id === 19); // Your main admin
+    
+    if (!adminUser) {
+      alert('No admin user found to assign orphaned leads.');
+      return;
+    }
+
+    if (!confirm(`Assign all orphaned leads to ${adminUser.email}?`)) {
+      return;
+    }
+
+    this.http.post('http://localhost:3000/api/admin/leads/assign-orphaned', {
+      defaultAdminId: adminUser.id
+    }, { withCredentials: true })
+      .subscribe({
+        next: (result: any) => {
+          alert(`Successfully assigned ${result.count} orphaned lead(s) to ${adminUser.email}`);
+          this.loadLeads();
+        },
+        error: (err) => {
+          console.error('Error assigning orphaned leads:', err);
+          alert('Failed to assign orphaned leads.');
+        }
+      });
   }
 
   onLogout() {

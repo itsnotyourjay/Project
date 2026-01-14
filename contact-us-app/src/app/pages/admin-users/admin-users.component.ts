@@ -13,6 +13,9 @@ interface User {
   lastLoginAt?: string;
   registeredIp?: string;
   lastLoginIp?: string;
+  deleted_at?: string | null;  // Added for soft delete
+  deleted_by?: number | null;
+  deletion_reason?: string | null;
 }
 
 @Component({
@@ -71,14 +74,36 @@ export class AdminUsersComponent implements OnInit {
     );
   }
 
-  filterByType(type: 'all' | 'admin' | 'regular') {
+  filterByType(type: 'all' | 'admin' | 'regular' | 'deleted' | 'active') {
     if (type === 'all') {
       this.filteredUsers = this.users;
     } else if (type === 'admin') {
-      this.filteredUsers = this.users.filter(u => u.isAdmin);
-    } else {
-      this.filteredUsers = this.users.filter(u => !u.isAdmin);
+      this.filteredUsers = this.users.filter(u => u.isAdmin && !u.deleted_at);
+    } else if (type === 'regular') {
+      this.filteredUsers = this.users.filter(u => !u.isAdmin && !u.deleted_at);
+    } else if (type === 'deleted') {
+      this.filteredUsers = this.users.filter(u => u.deleted_at);
+    } else if (type === 'active') {
+      this.filteredUsers = this.users.filter(u => !u.deleted_at);
     }
+  }
+
+  isDeleted(user: User): boolean {
+    return !!user.deleted_at;
+  }
+
+  getUserStatus(user: User): string {
+    if (user.deleted_at) {
+      return 'Deleted';
+    }
+    return user.isAdmin ? 'Admin' : 'User';
+  }
+
+  getUserStatusClass(user: User): string {
+    if (user.deleted_at) {
+      return 'status-deleted';
+    }
+    return user.isAdmin ? 'status-admin' : 'status-user';
   }
 
   onLogout() {

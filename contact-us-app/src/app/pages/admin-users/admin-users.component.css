@@ -46,3 +46,31 @@
 .bi {
   vertical-align: middle;
 }
+
+/* Deleted user styling */
+.status-deleted {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
+
+.status-admin {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+
+.status-user {
+  background-color: #6c757d !important;
+  color: white !important;
+}
+
+.table-danger {
+  background-color: #f8d7da !important;
+}
+
+.table-danger:hover {
+  background-color: #f5c6cb !important;
+}
+
+.table tbody tr.table-danger.text-muted td {
+  opacity: 0.8;
+}

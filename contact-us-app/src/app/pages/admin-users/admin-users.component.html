@@ -19,8 +19,8 @@
   <!-- Search and Filter Bar -->
   <div class="card mb-4">
     <div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-6">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-5">
           <div class="input-group">
             <span class="input-group-text">
               <i class="bi bi-search"></i>
@@ -33,16 +33,22 @@
               (input)="onSearch()">
           </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-7">
           <div class="btn-group w-100" role="group">
-            <button type="button" class="btn btn-outline-primary" (click)="filterByType('all')">
-              All Users
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="filterByType('all')">
+              <i class="bi bi-list-ul"></i> All
             </button>
-            <button type="button" class="btn btn-outline-success" (click)="filterByType('admin')">
-              Admins Only
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="filterByType('active')">
+              <i class="bi bi-check-circle"></i> Active
             </button>
-            <button type="button" class="btn btn-outline-info" (click)="filterByType('regular')">
-              Regular Users
+            <button type="button" class="btn btn-sm btn-outline-success" (click)="filterByType('admin')">
+              <i class="bi bi-shield"></i> Admins
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-info" (click)="filterByType('regular')">
+              <i class="bi bi-person"></i> Regular
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="filterByType('deleted')">
+              <i class="bi bi-trash"></i> Deleted
             </button>
           </div>
         </div>
@@ -79,38 +85,44 @@
         <table class="table table-hover mb-0">
           <thead class="table-light">
             <tr>
-              <th>ID</th>
+              <th style="width: 80px;">ID</th>
               <th>Email</th>
-              <th>Role</th>
-              <th>Registered</th>
-              <th>Last Login</th>
-              <th>Registered IP</th>
+              <th style="width: 150px;">Status</th>
+              <th style="width: 180px;">Registered</th>
+              <th style="width: 180px;">Last Login</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let user of filteredUsers" (click)="navigateToUser(user.id)" style="cursor: pointer;">
+            <tr *ngFor="let user of filteredUsers" 
+                (click)="navigateToUser(user.id)" 
+                style="cursor: pointer;"
+                [class.table-danger]="isDeleted(user)">
               <td><strong>#{{ user.id }}</strong></td>
               <td>
-                <i class="bi bi-envelope me-1"></i>
-                {{ user.email }}
+                <div class="d-flex align-items-center">
+                  <i class="bi bi-envelope me-2 text-muted"></i>
+                  <span>{{ user.email }}</span>
+                </div>
               </td>
               <td>
-                <span *ngIf="user.isAdmin" class="badge bg-success">
-                  <i class="bi bi-shield-check"></i> Admin
+                <span class="badge" [ngClass]="getUserStatusClass(user)">
+                  <i *ngIf="isDeleted(user)" class="bi bi-trash me-1"></i>
+                  <i *ngIf="!isDeleted(user) && user.isAdmin" class="bi bi-shield-check me-1"></i>
+                  <i *ngIf="!isDeleted(user) && !user.isAdmin" class="bi bi-person me-1"></i>
+                  {{ getUserStatus(user) }}
                 </span>
-                <span *ngIf="!user.isAdmin" class="badge bg-secondary">
-                  <i class="bi bi-person"></i> User
-                </span>
+                <div *ngIf="isDeleted(user)" class="mt-1">
+                  <small class="text-muted d-block">
+                    {{ user.deleted_at | date:'MMM d, y' }}
+                  </small>
+                </div>
               </td>
               <td>
-                <small>{{ user.registeredAt | date:'short' }}</small>
+                <small class="text-muted">{{ user.registeredAt | date:'MMM d, y, h:mm a' }}</small>
               </td>
               <td>
-                <small *ngIf="user.lastLoginAt">{{ user.lastLoginAt | date:'short' }}</small>
-                <small *ngIf="!user.lastLoginAt" class="text-muted">Never</small>
-              </td>
-              <td>
-                <small class="text-muted">{{ user.registeredIp || 'N/A' }}</small>
+                <small *ngIf="user.lastLoginAt" class="text-muted">{{ user.lastLoginAt | date:'MMM d, y, h:mm a' }}</small>
+                <small *ngIf="!user.lastLoginAt" class="text-muted fst-italic">Never</small>
               </td>
             </tr>
           </tbody>

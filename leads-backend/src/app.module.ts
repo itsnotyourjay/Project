@@ -26,6 +26,8 @@ import { AdminModule } from './admin/admin.module';
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true,
+        timezone: 'Z', // Force UTC timezone for all database operations
+        dateStrings: false, // Return Date objects, not strings
       }),
 
     }),

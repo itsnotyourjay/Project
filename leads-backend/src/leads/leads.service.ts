@@ -27,10 +27,14 @@ export class LeadsService {
     if (userId) {
       return this.leadsRepository.find({ 
         where: { userId },
+        relations: ['user'],
         order: { createdAt: 'DESC' } 
       });
     }
-    return this.leadsRepository.find({ order: { createdAt: 'DESC' } });
+    return this.leadsRepository.find({ 
+      relations: ['user'],
+      order: { createdAt: 'DESC' } 
+    });
   }
 
   async findOne(id: number, userId?: number) {
@@ -70,4 +74,90 @@ export class LeadsService {
     
     return { msg: 'Lead deleted successfully' };
   }
+
+  // Get count of leads for a specific user
+  async getLeadCountForUser(userId: number): Promise<number> {
+    return this.leadsRepository.count({
+      where: { userId },
+    });
+  }
+
+  // Reassign a single lead to a different user
+  async reassignSingleLead(
+    leadId: number,
+    toUserId: number,
+  ): Promise<{ message: string; lead: Lead }> {
+    const lead = await this.leadsRepository.findOne({ where: { id: leadId } });
+
+    if (!lead) {
+      throw new NotFoundException(`Lead with ID ${leadId} not found`);
+    }
+
+    const previousUserId = lead.userId;
+    lead.userId = toUserId;
+    await this.leadsRepository.save(lead);
+
+    return {
+      message: `Successfully reassigned lead ${leadId} from user ${previousUserId} to user ${toUserId}`,
+      lead,
+    };
+  }
+
+  // Reassign all leads from one user to another
+  async reassignLeads(
+    fromUserId: number,
+    toUserId: number,
+  ): Promise<{ count: number; message: string }> {
+    // Find all leads belonging to the old user
+    const leads = await this.leadsRepository.find({
+      where: { userId: fromUserId },
+    });
+
+    if (leads.length === 0) {
+      return { 
+        count: 0, 
+        message: `No leads found for user ${fromUserId}` 
+      };
+    }
+
+    // Batch update all leads to new user
+    await this.leadsRepository.update(
+      { userId: fromUserId },
+      { userId: toUserId },
+    );
+
+    return {
+      count: leads.length,
+      message: `Successfully reassigned ${leads.length} leads from user ${fromUserId} to user ${toUserId}`,
+    };
+  }
+
+  // Find and reassign orphaned leads (leads belonging to deleted users)
+  async reassignOrphanedLeads(
+    defaultAdminId: number,
+  ): Promise<{ count: number; message: string }> {
+    // Find leads where the user is soft-deleted
+    const orphanedLeads = await this.leadsRepository
+      .createQueryBuilder('lead')
+      .leftJoin('lead.user', 'user')
+      .where('user.deleted_at IS NOT NULL')
+      .getMany();
+
+    if (orphanedLeads.length === 0) {
+      return {
+        count: 0,
+        message: 'No orphaned leads found',
+      };
+    }
+
+    // Reassign all orphaned leads to the default admin
+    const leadIds = orphanedLeads.map((l) => l.id);
+    await this.leadsRepository.update(leadIds, { userId: defaultAdminId });
+
+    return {
+      count: orphanedLeads.length,
+      message: `Reassigned ${orphanedLeads.length} orphaned leads to admin ${defaultAdminId}`,
+    };
+  }
 }
+

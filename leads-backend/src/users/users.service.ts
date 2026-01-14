@@ -7,7 +7,8 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectRepository(User) private repo: Repository<User>) {}
+  constructor(@InjectRepository(User) public repo: Repository<User>) {}
+  // Made repo public so AdminController can access it for withDeleted queries
 
   // Accept an optional ipAddress to record where the user registered from
   async create(dto: RegisterUserDto, ipAddress?: string): Promise<User> {
@@ -34,6 +35,24 @@ export class UsersService {
     });
   }
 
+  // Get all users INCLUDING soft-deleted (for admin dashboard)
+  async findAllIncludingDeleted(): Promise<User[]> {
+    return this.repo.find({
+      withDeleted: true,
+      order: { registeredAt: 'DESC' }
+    });
+  }
+
+  // Get only deleted users (for audit/recovery view)
+  async findDeleted(): Promise<User[]> {
+    return this.repo
+      .createQueryBuilder('user')
+      .where('user.deleted_at IS NOT NULL')
+      .withDeleted()
+      .orderBy('user.deleted_at', 'DESC')
+      .getMany();
+  }
+
   // Added method used by AuthService to record last login time and IP
   async updateLastLogin(userId: number, ipAddress?: string): Promise<void> {
     await this.repo.update(userId, {
@@ -51,8 +70,63 @@ export class UsersService {
     return this.findById(userId);
   }
 
-  // Admin: Delete user (hard delete - removes user and cascades to related data)
+  // Admin: Soft delete user (mark as deleted, preserve data for audit)
+  async softDeleteUser(
+    userId: number,
+    deletedBy: number,
+    reason?: string,
+  ): Promise<{ message: string; deletedUser: User }> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+
+    // Set deletion metadata before soft delete
+    await this.repo.update(userId, {
+      deleted_by: deletedBy,
+      deletion_reason: reason || 'No reason provided',
+    } as Partial<User>);
+
+    // Perform soft delete (sets deleted_at timestamp)
+    await this.repo.softDelete(userId);
+
+    // Fetch the deleted user with deleted data
+    const deletedUser = await this.repo.findOne({
+      where: { id: userId },
+      withDeleted: true,
+    });
+
+    return {
+      message: `User ${user.email} has been soft deleted`,
+      deletedUser,
+    };
+  }
+
+  // Admin: Restore a soft-deleted user
+  async restoreUser(userId: number): Promise<User> {
+    await this.repo.restore(userId);
+
+    // Clear deletion metadata
+    await this.repo.update(userId, {
+      deleted_by: null,
+      deletion_reason: null,
+    } as Partial<User>);
+
+    return this.findById(userId);
+  }
+
+  // Admin: Hard delete user (PERMANENT - use with extreme caution!)
   async deleteUser(userId: number): Promise<void> {
-    await this.repo.delete(userId);
+    const user = await this.repo.findOne({
+      where: { id: userId },
+      withDeleted: true,
+    });
+
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+
+    // Permanently remove from database
+    await this.repo.remove(user);
   }
 }

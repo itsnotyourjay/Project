@@ -12,7 +12,8 @@ export class AuthController {
   @Post('register')
   async register(@Body() dto: RegisterUserDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const ipAddress = req.ip || req.connection.remoteAddress;
-    const result: any = await this.auth.register(dto, ipAddress);
+    const userAgent = req.headers['user-agent'];
+    const result: any = await this.auth.register(dto, ipAddress, userAgent);
     // set access and refresh tokens as secure HttpOnly cookies
     if (result?.access_token) {
       res.cookie('accessToken', result.access_token, {
@@ -39,7 +40,8 @@ export class AuthController {
   @Post('login')
   async login(@Body() dto: LoginUserDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const ipAddress = req.ip || req.connection.remoteAddress;
-    const result: any = await this.auth.login(dto, ipAddress);
+    const userAgent = req.headers['user-agent'];
+    const result: any = await this.auth.login(dto, ipAddress, userAgent);
     
     if (result?.access_token) {
       res.cookie('accessToken', result.access_token, {
@@ -65,7 +67,8 @@ export class AuthController {
   @Post('admin/login')
   async adminLogin(@Body() dto: LoginUserDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const ipAddress = req.ip || req.connection.remoteAddress;
-    const result: any = await this.auth.adminLogin(dto, ipAddress);
+    const userAgent = req.headers['user-agent'];
+    const result: any = await this.auth.adminLogin(dto, ipAddress, userAgent);
     
     if (result?.access_token) {
       res.cookie('accessToken', result.access_token, {
@@ -91,7 +94,9 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = (req as any).cookies?.refreshToken;
-    const tokens: any = await this.auth.refreshTokens(refreshToken);
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    const tokens: any = await this.auth.refreshTokens(refreshToken, ipAddress, userAgent);
     if (tokens?.access_token) {
       res.cookie('accessToken', tokens.access_token, {
         httpOnly: true,

@@ -44,3 +44,25 @@
   font-size: 0.9rem;
   color: #495057;
 }
+
+/* Orphaned leads warning */
+.table-warning {
+  background-color: #fff3cd !important;
+}
+
+.table-warning:hover {
+  background-color: #ffe69c !important;
+}
+
+/* Modal styling */
+.modal.show {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-backdrop.show {
+  opacity: 0.5;
+}

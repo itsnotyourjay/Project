@@ -6,6 +6,7 @@ import { LoginUserDto } from '../users/dto/login-user.dto';
 import * as bcrypt from 'bcrypt';
 import { RefreshTokensService } from './refresh-tokens.service';
 import { UserToken } from './entities/user-token.entity';
+import { UAParser } from 'ua-parser-js';
 
 @Injectable()
 export class AuthService {
@@ -21,23 +22,43 @@ export class AuthService {
     return { access_token, refresh_token };
   }
 
-  async register(dto: RegisterUserDto, ipAddress?: string) {
+  private parseUserAgent(userAgent?: string): string {
+    if (!userAgent) return 'unknown';
+    
+    const parser = new UAParser(userAgent);
+    const device = parser.getDevice();
+    
+    // Determine device type
+    if (device.type === 'mobile') {
+      return 'mobile';
+    } else if (device.type === 'tablet') {
+      return 'tablet';
+    } else {
+      return 'desktop';
+    }
+  }
+
+  async register(dto: RegisterUserDto, ipAddress?: string, userAgent?: string) {
     const user = await this.users.create(dto, ipAddress);
 
     const tokens = await this.getTokens(user.id, user.email, user.isAdmin || false);
 
-    // store hashed refresh token in refresh_tokens table
+    // store hashed refresh token in refresh_tokens table with metadata
     console.log('💾 [REGISTER] Storing refresh token for new user:', user.id);
     const hashed = await bcrypt.hash(tokens.refresh_token, 10);
     const expiresAt = new Date(Date.now() + (parseInt(process.env.REFRESH_EXPIRES_MS || String(7 * 24 * 60 * 60 * 1000))));
+    const deviceType = this.parseUserAgent(userAgent);
     
     try {
       await this.refreshTokensService.create({ 
         user_id: user.id, 
         token_hash: hashed, 
-        expires_at: expiresAt 
+        expires_at: expiresAt,
+        device_type: deviceType,
+        ip_address: ipAddress,
+        user_agent: userAgent
       });
-      console.log('✅ [REGISTER] Refresh token saved successfully!');
+      console.log('✅ [REGISTER] Refresh token saved successfully!', { deviceType, ipAddress });
     } catch (error) {
       console.error('❌ [REGISTER] Failed to save refresh token:', error.message);
       // Don't throw - allow registration to proceed
@@ -46,9 +67,15 @@ export class AuthService {
     return { user: { id: user.id, email: user.email }, access_token: tokens.access_token, refresh_token: tokens.refresh_token };
   }
 
-  async login(dto: LoginUserDto, ipAddress?: string) {
+  async login(dto: LoginUserDto, ipAddress?: string, userAgent?: string) {
     const user = await this.users.findByEmail(dto.email);
     if (!user) throw new UnauthorizedException('Invalid credentials');
+    
+    // Check if user is soft-deleted
+    if (user.deleted_at) {
+      throw new UnauthorizedException('Account has been deactivated');
+    }
+    
     const ok = await bcrypt.compare(dto.password, user.password);
     if (!ok) throw new UnauthorizedException('Invalid credentials');
     
@@ -56,17 +83,22 @@ export class AuthService {
     await this.users.updateLastLogin(user.id, ipAddress);
     const tokens = await this.getTokens(user.id, user.email, user.isAdmin || false);
 
-    // store hashed refresh token in refresh_tokens table
+    // store hashed refresh token in refresh_tokens table with metadata
     console.log('💾 Storing refresh token for user:', user.id);
     const hashed = await bcrypt.hash(tokens.refresh_token, 10);
     const expiresAt = new Date(Date.now() + (parseInt(process.env.REFRESH_EXPIRES_MS || String(7 * 24 * 60 * 60 * 1000))));
+    const deviceType = this.parseUserAgent(userAgent);
     console.log('📅 Refresh token will expire at:', expiresAt);
+    console.log('📱 Device type:', deviceType, 'IP:', ipAddress);
     
     try {
       const savedToken = await this.refreshTokensService.create({ 
         user_id: user.id, 
         token_hash: hashed, 
-        expires_at: expiresAt 
+        expires_at: expiresAt,
+        device_type: deviceType,
+        ip_address: ipAddress,
+        user_agent: userAgent
       });
       console.log('✅ Refresh token saved successfully! ID:', savedToken.id);
     } catch (error) {
@@ -79,9 +111,14 @@ export class AuthService {
     return { user: { id: user.id, email: user.email, isAdmin: user.isAdmin }, access_token: tokens.access_token, refresh_token: tokens.refresh_token };
   }
 
-  async adminLogin(dto: LoginUserDto, ipAddress?: string) {
+  async adminLogin(dto: LoginUserDto, ipAddress?: string, userAgent?: string) {
     const user = await this.users.findByEmail(dto.email);
     if (!user) throw new UnauthorizedException('Invalid credentials');
+    
+    // Check if user is soft-deleted
+    if (user.deleted_at) {
+      throw new UnauthorizedException('Account has been deactivated');
+    }
     
     // Check if user is admin
     if (!user.isAdmin) throw new UnauthorizedException('Access denied. Admin privileges required.');
@@ -93,17 +130,22 @@ export class AuthService {
     await this.users.updateLastLogin(user.id, ipAddress);
     const tokens = await this.getTokens(user.id, user.email, true);
 
-    // Store hashed refresh token
+    // Store hashed refresh token with metadata
     console.log('💾 [ADMIN] Storing refresh token for user:', user.id);
     const hashed = await bcrypt.hash(tokens.refresh_token, 10);
     const expiresAt = new Date(Date.now() + (parseInt(process.env.REFRESH_EXPIRES_MS || String(7 * 24 * 60 * 60 * 1000))));
+    const deviceType = this.parseUserAgent(userAgent);
     console.log('📅 [ADMIN] Refresh token will expire at:', expiresAt);
+    console.log('📱 [ADMIN] Device type:', deviceType, 'IP:', ipAddress);
     
     try {
       const savedToken = await this.refreshTokensService.create({ 
         user_id: user.id, 
         token_hash: hashed, 
-        expires_at: expiresAt 
+        expires_at: expiresAt,
+        device_type: deviceType,
+        ip_address: ipAddress,
+        user_agent: userAgent
       });
       console.log('✅ [ADMIN] Refresh token saved successfully! ID:', savedToken.id);
     } catch (error) {
@@ -120,7 +162,7 @@ export class AuthService {
   await this.refreshTokensService.revokeAllForUser(userId);
   }
 
-  async refreshTokens(refreshToken: string) {
+  async refreshTokens(refreshToken: string, ipAddress?: string, userAgent?: string) {
     try {
       console.log('🔄 Refreshing tokens...');
       const payload: any = await this.jwt.verifyAsync(refreshToken, { secret: process.env.JWT_SECRET });
@@ -153,6 +195,10 @@ export class AuthService {
 
       console.log('✅ Refresh token validated! Generating new tokens...');
       
+      // Parse device type from user agent
+      const deviceType = this.parseUserAgent(userAgent);
+      console.log('📱 Device type:', deviceType, 'IP:', ipAddress);
+      
       // mark old token revoked and create a new one (rotation)
       await this.refreshTokensService.revoke(matched.id);
       const tokens = await this.getTokens(user.id, user.email, user.isAdmin || false);
@@ -160,7 +206,10 @@ export class AuthService {
       const newRow = await this.refreshTokensService.create({ 
         user_id: user.id, 
         token_hash: hashed, 
-        expires_at: new Date(Date.now() + (parseInt(process.env.REFRESH_EXPIRES_MS || String(7 * 24 * 60 * 60 * 1000))))
+        expires_at: new Date(Date.now() + (parseInt(process.env.REFRESH_EXPIRES_MS || String(7 * 24 * 60 * 60 * 1000)))),
+        device_type: deviceType,
+        ip_address: ipAddress,
+        user_agent: userAgent
       });
 
       // link the rotation chain
