@@ -13,7 +13,18 @@ import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(new ValidationPipe());
+  // Global validation pipe with security settings
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,           // Strip properties that don't have decorators
+      forbidNonWhitelisted: true, // Throw error if non-whitelisted properties exist
+      transform: true,            // Auto-transform payloads to DTO instances
+      transformOptions: {
+        enableImplicitConversion: true, // Enable implicit type conversion
+      },
+    }),
+  );
+  
   // parse cookies for refresh-token flow
   app.use(cookieParser());
 
@@ -27,11 +38,9 @@ async function bootstrap() {
   // Set global API prefix
   app.setGlobalPrefix('api');
 
-  console.log('PORT:', process.env.PORT);
-  console.log('DB_HOST:', process.env.DB_HOST);
-  console.log('DB_NAME:', process.env.DB_NAME);
-
-  await app.listen(process.env.PORT || 3000);
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  console.log(`🚀 Application is running on: http://localhost:${port}/api`);
 }
 
 bootstrap();

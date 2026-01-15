@@ -3,10 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Contact } from './contact.entity';
 import { CreateContactDto } from './create-contact.dto';
+import { environment } from '../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ContactsService {
-  private apiUrl = 'http://localhost:3000/api/leads'; // Use /api/leads for now
+  private apiUrl = `${environment.apiUrl}/leads`;
 
   constructor(private http: HttpClient) {}
 

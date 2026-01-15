@@ -4,6 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { AuthStateService } from './auth-state.service';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -45,7 +46,7 @@ export class AuthInterceptor implements HttpInterceptor {
     const http = this.injector.get(HttpClient) as HttpClient;
 
     // Call refresh endpoint (cookie-based). If it succeeds, retry the original request once.
-    return http.post<any>('http://localhost:3000/api/auth/refresh', {}, { withCredentials: true }).pipe(
+    return http.post<any>(`${environment.apiUrl}/auth/refresh`, {}, { withCredentials: true }).pipe(
       switchMap((res) => {
         this.isRefreshing = false;
         // The refresh endpoint sets HttpOnly cookies (accessToken + refreshToken). Retry the original request — cookie will be sent automatically.

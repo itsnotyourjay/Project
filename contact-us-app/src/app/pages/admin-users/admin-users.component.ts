@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 interface User {
   id: number;
@@ -46,7 +47,7 @@ export class AdminUsersComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.http.get<User[]>('http://localhost:3000/api/admin/users', { withCredentials: true })
+    this.http.get<User[]>(`${environment.apiUrl}/admin/users`, { withCredentials: true })
       .subscribe({
         next: (data) => {
           this.users = data;

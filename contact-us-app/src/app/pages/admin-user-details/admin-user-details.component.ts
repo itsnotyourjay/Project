@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../../environments/environment';
 
 interface User {
   id: number;
@@ -66,7 +67,7 @@ export class AdminUserDetailsComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.http.get<UserDetailsResponse>(`http://localhost:3000/api/admin/users/${this.userId}`, { withCredentials: true })
+    this.http.get<UserDetailsResponse>(`${environment.apiUrl}/admin/users/${this.userId}`, { withCredentials: true })
       .subscribe({
         next: (data) => {
           this.user = data.user;
@@ -96,7 +97,7 @@ export class AdminUserDetailsComponent implements OnInit {
   saveChanges() {
     if (!this.user) return;
 
-    this.http.patch(`http://localhost:3000/api/admin/users/${this.userId}`, 
+    this.http.patch(`${environment.apiUrl}/admin/users/${this.userId}`, 
       { isAdmin: this.editedIsAdmin },
       { withCredentials: true }
     ).subscribe({
@@ -133,7 +134,7 @@ export class AdminUserDetailsComponent implements OnInit {
 
     if (!secondConfirm) return;
 
-    this.http.delete(`http://localhost:3000/api/admin/users/${this.userId}`, { withCredentials: true })
+    this.http.delete(`${environment.apiUrl}/admin/users/${this.userId}`, { withCredentials: true })
       .subscribe({
         next: (response: any) => {
           alert(`User deleted successfully. ${response.deletedLeadsCount} leads were also removed.`);

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 interface Stats {
   totalUsers: number;
@@ -39,7 +40,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   loadStats() {
-    this.http.get<Stats>('http://localhost:3000/api/admin/stats', { withCredentials: true })
+    this.http.get<Stats>(`${environment.apiUrl}/admin/stats`, { withCredentials: true })
       .subscribe({
         next: (data) => {
           this.totalUsers = data.totalUsers;

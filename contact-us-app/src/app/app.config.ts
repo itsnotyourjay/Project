@@ -6,6 +6,7 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { of } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { AuthStateService } from './services/auth-state.service';
+import { environment } from '../environments/environment';
 
 import { routes } from './app.routes';
 
@@ -28,7 +29,7 @@ export const appConfig: ApplicationConfig = {
       
       // Return a Promise that blocks app initialization
       return new Promise<void>((resolve) => {
-        http.post<any>('http://localhost:3000/api/auth/me', {}, { withCredentials: true })
+        http.post<any>(`${environment.apiUrl}/auth/me`, {}, { withCredentials: true })
           .pipe(
             timeout(5000),
             catchError(() => of(null))

@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 interface Lead {
   id: number;
@@ -59,7 +60,7 @@ export class AdminLeadsComponent implements OnInit {
   }
 
   loadUsers() {
-    this.http.get<User[]>('http://localhost:3000/api/admin/users', { withCredentials: true })
+    this.http.get<User[]>(`${environment.apiUrl}/admin/users`, { withCredentials: true })
       .subscribe({
         next: (data) => {
           this.users = data;
@@ -74,7 +75,7 @@ export class AdminLeadsComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.http.get<Lead[]>('http://localhost:3000/api/admin/leads', { withCredentials: true })
+    this.http.get<Lead[]>(`${environment.apiUrl}/admin/leads`, { withCredentials: true })
       .subscribe({
         next: (data) => {
           this.leads = data;
@@ -160,7 +161,7 @@ export class AdminLeadsComponent implements OnInit {
 
     this.reassigning = true;
 
-    this.http.post('http://localhost:3000/api/admin/leads/reassign-single', {
+    this.http.post(`${environment.apiUrl}/admin/leads/reassign-single`, {
       leadId: this.reassignLeadId,
       toUserId: this.reassignToUserId
     }, { withCredentials: true })
@@ -192,7 +193,7 @@ export class AdminLeadsComponent implements OnInit {
       return;
     }
 
-    this.http.post('http://localhost:3000/api/admin/leads/assign-orphaned', {
+    this.http.post(`${environment.apiUrl}/admin/leads/assign-orphaned`, {
       defaultAdminId: adminUser.id
     }, { withCredentials: true })
       .subscribe({

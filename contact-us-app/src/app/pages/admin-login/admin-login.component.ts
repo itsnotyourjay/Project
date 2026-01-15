@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthStateService } from '../../services/auth-state.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-admin-login',
@@ -51,7 +52,7 @@ export class AdminLoginComponent implements OnInit {
     this.loading = true;
     this.errorMessage = '';
 
-    this.http.post('http://localhost:3000/api/auth/admin/login', this.loginForm.value, { withCredentials: true })
+    this.http.post(`${environment.apiUrl}/auth/admin/login`, this.loginForm.value, { withCredentials: true })
       .subscribe({
         next: (response: any) => {
           this.authState.setAuthenticated(true);
